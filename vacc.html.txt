@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="مطاعيم">
+<meta name="theme-color" content="#1a6b3a">
+<title>دفتر المطاعيم البيطري</title>
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  :root {
+    --green:     #1a6b3a;
+    --green2:    #2d9c57;
+    --green-lt:  #e8f5ec;
+    --red:       #e74c3c;
+    --orange:    #f39c12;
+    --bg:        #f0f4f0;
+    --white:     #ffffff;
+    --text:      #1a3a2a;
+    --sub:       #667766;
+    --border:    #dde8dd;
+    --safe-top:  env(safe-area-inset-top, 0px);
+    --safe-bot:  env(safe-area-inset-bottom, 0px);
+  }
+
+  html, body { height: 100%; background: var(--bg); overflow: hidden; }
+
+  body {
+    font-family: 'Tajawal', 'Segoe UI', sans-serif;
+    direction: rtl;
+    display: flex;
+    flex-direction: column;
+    height: 100dvh;
+  }
+
+  /* ─── HEADER ─── */
+  header {
+    background: linear-gradient(135deg, var(--green) 0%, var(--green2) 100%);
+    padding: calc(var(--safe-top) + 14px) 16px 14px;
+    display: flex; align-items: center; justify-content: space-between;
+    box-shadow: 0 4px 20px rgba(26,107,58,.35);
+    flex-shrink: 0; position: relative; z-index: 10;
+  }
+  .hd-side { width: 80px; display: flex; }
+  .hd-side.right { justify-content: flex-end; }
+  .hd-center { display: flex; align-items: center; gap: 8px; }
+  .hd-title { font-size: 18px; font-weight: 800; color: #fff; }
+  .hd-logo  { font-size: 24px; }
+
+  .btn-back {
+    background: rgba(255,255,255,.2); border: none; color: #fff;
+    padding: 7px 13px; border-radius: 20px; font-size: 13px; font-weight: 600;
+    cursor: pointer; font-family: inherit;
+  }
+  .btn-add {
+    background: #fff; border: none; color: var(--green);
+    padding: 7px 15px; border-radius: 20px; font-size: 13px; font-weight: 800;
+    cursor: pointer; font-family: inherit;
+  }
+
+  /* ─── CONTENT ─── */
+  .content {
+    flex: 1; overflow-y: auto; padding: 14px 14px calc(var(--safe-bot) + 14px);
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* ─── SEARCH ─── */
+  .search-wrap { position: relative; margin-bottom: 12px; }
+  .search-wrap input {
+    width: 100%; padding: 12px 44px 12px 14px;
+    border-radius: 14px; border: 2px solid #e0e8e0;
+    background: #fff; font-size: 14px; font-family: inherit;
+    outline: none; box-shadow: 0 2px 8px rgba(0,0,0,.06);
+  }
+  .search-icon { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); font-size: 18px; pointer-events: none; }
+
+  /* ─── EMPTY ─── */
+  .empty { text-align: center; padding: 60px 20px; }
+  .empty .big { font-size: 64px; margin-bottom: 12px; }
+  .empty h3 { font-size: 18px; font-weight: 700; color: #555; margin-bottom: 6px; }
+  .empty p  { color: #999; font-size: 13px; }
+
+  /* ─── ANIMAL CARDS ─── */
+  .animals { display: flex; flex-direction: column; gap: 10px; }
+  .animal-card {
+    background: #fff; border-radius: 16px; padding: 13px 14px;
+    display: flex; align-items: center; gap: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,.07);
+    border: 1px solid #e8f0e8; cursor: pointer;
+    transition: transform .12s;
+    -webkit-user-select: none;
+  }
+  .animal-card:active { transform: scale(.98); }
+  .ac-emoji { font-size: 36px; width: 46px; text-align: center; flex-shrink: 0; }
+  .ac-body  { flex: 1; min-width: 0; }
+  .ac-name  { font-weight: 800; font-size: 16px; color: var(--text); }
+  .ac-sub   { color: var(--sub); font-size: 12px; margin-top: 2px; }
+  .ac-owner { color: #999; font-size: 12px; margin-top: 2px; }
+  .ac-vacc  { display: flex; align-items: center; gap: 6px; margin-top: 4px; font-size: 12px; color: var(--green2); }
+  .tag-overdue { background: var(--red); color: #fff; border-radius: 10px; padding: 1px 8px; font-size: 11px; font-weight: 700; }
+  .tag-soon    { background: var(--orange); color: #fff; border-radius: 10px; padding: 1px 8px; font-size: 11px; font-weight: 700; }
+  .ac-arrow { color: #ccc; font-size: 22px; }
+
+  /* ─── FORM ─── */
+  .form-card { background: #fff; border-radius: 20px; padding: 18px; box-shadow: 0 4px 20px rgba(0,0,0,.08); }
+  .form-title { font-size: 18px; font-weight: 800; color: var(--text); margin-bottom: 16px; }
+  .sec-label {
+    font-size: 11px; font-weight: 800; color: var(--green2);
+    text-transform: uppercase; letter-spacing: 1px;
+    margin: 14px 0 8px; padding-bottom: 6px;
+    border-bottom: 2px solid var(--green-lt);
+  }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .field { margin-bottom: 10px; }
+  .field label { display: block; font-size: 12px; font-weight: 700; color: #555; margin-bottom: 4px; }
+  .field input, .field select, .field textarea {
+    width: 100%; padding: 10px 12px; border-radius: 10px;
+    border: 1.5px solid var(--border); font-size: 14px;
+    background: #fafcfa; font-family: inherit; outline: none;
+    color: var(--text);
+    -webkit-appearance: none; appearance: none;
+  }
+  .field textarea { resize: vertical; height: 70px; }
+  .field select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M6 8L0 0h12z' fill='%23999'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: left 12px center; padding-left: 30px; }
+
+  .btn-save {
+    width: 100%; padding: 14px; margin-top: 10px;
+    background: linear-gradient(135deg, var(--green), var(--green2));
+    color: #fff; border: none; border-radius: 14px;
+    font-size: 16px; font-weight: 800; font-family: inherit;
+    cursor: pointer; box-shadow: 0 4px 15px rgba(45,156,87,.4);
+  }
+
+  /* ─── DETAIL ─── */
+  .detail-card { background: #fff; border-radius: 20px; padding: 18px; box-shadow: 0 4px 20px rgba(0,0,0,.08); margin-bottom: 14px; }
+  .detail-top  { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+  .detail-emoji { font-size: 52px; width: 62px; text-align: center; }
+  .detail-name  { font-size: 22px; font-weight: 800; color: var(--text); }
+  .detail-spec  { color: var(--sub); font-size: 13px; margin-top: 2px; }
+  .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+  .info-item { background: #f5faf5; border-radius: 10px; padding: 8px 12px; }
+  .info-lbl  { font-size: 11px; color: #999; font-weight: 700; display: block; margin-bottom: 2px; }
+  .info-val  { font-size: 13px; color: var(--text); font-weight: 600; }
+  .notes-box { background: #fffbf0; border: 1px solid #f0e0b0; border-radius: 10px; padding: 10px 14px; font-size: 13px; color: #665500; margin-bottom: 12px; }
+  .btn-danger {
+    background: none; border: 1.5px solid var(--red); color: var(--red);
+    padding: 8px 18px; border-radius: 10px; font-size: 13px;
+    font-family: inherit; cursor: pointer;
+  }
+
+  /* ─── VACCINES ─── */
+  .vacc-sec-hd { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .vacc-sec-hd h3 { font-size: 15px; font-weight: 800; color: var(--text); }
+  .btn-add-vacc {
+    background: linear-gradient(135deg, var(--green), var(--green2));
+    color: #fff; border: none; padding: 8px 16px; border-radius: 20px;
+    font-size: 13px; font-weight: 800; font-family: inherit; cursor: pointer;
+  }
+  .vacc-empty { text-align: center; color: #aaa; padding: 22px; background: #fff; border-radius: 14px; font-size: 14px; }
+  .vacc-card {
+    background: #fff; border-radius: 14px; padding: 13px 14px;
+    border-right: 4px solid var(--green2); margin-bottom: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.06);
+  }
+  .vacc-card.overdue { border-right-color: var(--red); }
+  .vacc-card.soon    { border-right-color: var(--orange); }
+  .vacc-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+  .vacc-name { font-weight: 800; font-size: 15px; color: var(--text); flex: 1; }
+  .btn-del-vacc { background: none; border: none; color: #ccc; cursor: pointer; font-size: 18px; padding: 0 4px; line-height: 1; }
+  .vacc-rows { display: flex; flex-direction: column; gap: 5px; }
+  .vacc-row { font-size: 13px; color: #555; display: flex; align-items: center; gap: 6px; }
+  .vacc-row.warn { color: var(--red); font-weight: 700; }
+  .vacc-row.ok   { color: #27ae60; }
+  .vacc-row.soon-clr { color: var(--orange); font-weight: 700; }
+
+  /* ─── TOAST ─── */
+  #toast {
+    position: fixed; bottom: calc(var(--safe-bot) + 20px); left: 50%; transform: translateX(-50%) translateY(80px);
+    background: #222; color: #fff; padding: 11px 22px; border-radius: 22px;
+    font-size: 14px; font-family: inherit; z-index: 999;
+    transition: transform .3s, opacity .3s; opacity: 0; pointer-events: none;
+  }
+  #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+  /* ─── MODAL CONFIRM ─── */
+  .overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,.5);
+    display: flex; align-items: flex-end; justify-content: center;
+    z-index: 200; padding-bottom: var(--safe-bot);
+    opacity: 0; pointer-events: none; transition: opacity .25s;
+  }
+  .overlay.open { opacity: 1; pointer-events: all; }
+  .modal-sheet {
+    background: #fff; border-radius: 24px 24px 0 0; padding: 24px 20px 20px;
+    width: 100%; max-width: 500px;
+    transform: translateY(100%); transition: transform .3s;
+  }
+  .overlay.open .modal-sheet { transform: translateY(0); }
+  .modal-title { font-size: 17px; font-weight: 800; color: var(--text); margin-bottom: 8px; }
+  .modal-sub   { font-size: 14px; color: var(--sub); margin-bottom: 20px; }
+  .modal-btns  { display: flex; gap: 10px; }
+  .modal-btns button { flex: 1; padding: 13px; border-radius: 13px; font-size: 15px; font-weight: 700; font-family: inherit; border: none; cursor: pointer; }
+  .btn-cancel  { background: #f0f0f0; color: #555; }
+  .btn-confirm { background: var(--red); color: #fff; }
+</style>
+
+</head>
+<body>
+
+<!-- HEADER -->
+
+<header id="header">
+  <div class="hd-side">
+    <button class="btn-back" id="btnBack" onclick="goBack()" style="display:none">← رجوع</button>
+  </div>
+  <div class="hd-center">
+    <span class="hd-logo">🏥</span>
+    <span class="hd-title" id="headerTitle">دفتر المطاعيم</span>
+  </div>
+  <div class="hd-side right">
+    <button class="btn-add" id="btnAdd" onclick="showView('add')">+ إضافة</button>
+  </div>
+</header>
+
+<div class="content" id="content"></div>
+
+<div id="toast"></div>
+
+<!-- CONFIRM MODAL -->
+
+<div class="overlay" id="confirmOverlay">
+  <div class="modal-sheet">
+    <div class="modal-title" id="confirmTitle">تأكيد الحذف</div>
+    <div class="modal-sub"  id="confirmSub">هل أنت متأكد؟ لا يمكن التراجع.</div>
+    <div class="modal-btns">
+      <button class="btn-cancel"  onclick="closeConfirm()">إلغاء</button>
+      <button class="btn-confirm" id="confirmOk">حذف</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════ DATA ═══════════════════════
+const STORAGE_KEY = "vet_animals_v2";
+let animals = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+let currentView = "list";
+let selectedId = null;
+let confirmCallback = null;
+
+const SPECIES = { "كلب":"🐕","قطة":"🐈","طائر":"🦜","أرنب":"🐇","هامستر":"🐹","سلحفاة":"🐢","أخرى":"🐾" };
+const VACCINES = {
+  "كلب":    ["داء الكلب (Rabies)","سداسي (DHPP)","برفوفايروس (Parvo)","كورونا (Corona)","بوردتيلا (Kennel Cough)"],
+  "قطة":    ["داء الكلب (Rabies)","ثلاثي القطط (FVRCP)","فيروس ابيضاض الدم (FeLV)","كوريزا (Cat Flu)"],
+  "أرنب":   ["فيروس VHD","بوردتيلا (Bordetella)"],
+  "طائر":   ["نيوكاسل (Newcastle)","جدري الطيور (Fowl Pox)"],
+  "هامستر": ["لا مطاعيم قياسية"],
+  "سلحفاة": ["لا مطاعيم قياسية"],
+  "أخرى":   []
+};
+
+function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(animals)); }
+function uid()  { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
+function today(){ return new Date().toISOString().split("T")[0]; }
+function daysUntil(d) {
+  if (!d) return null;
+  return Math.round((new Date(d) - new Date(today())) / 86400000);
+}
+
+// ═══════════════════════ VIEWS ═══════════════════════
+function showView(view, id) {
+  currentView = view;
+  if (id) selectedId = id;
+  const hdr = document.getElementById("headerTitle");
+  const back = document.getElementById("btnBack");
+  const add  = document.getElementById("btnAdd");
+
+  back.style.display = view !== "list" ? "block" : "none";
+  add.style.display  = view === "list" ? "block" : "none";
+
+  if (view === "list")       { hdr.textContent = "دفتر المطاعيم"; renderList(); }
+  if (view === "add")        { hdr.textContent = "تسجيل حيوان جديد"; renderAddAnimal(); }
+  if (view === "detail")     { hdr.textContent = "ملف الحيوان"; renderDetail(); }
+  if (view === "addVaccine") { hdr.textContent = "إضافة تطعيم"; renderAddVaccine(); }
+}
+
+function goBack() {
+  if (currentView === "addVaccine") showView("detail");
+  else { selectedId = null; showView("list"); }
+}
+
+// ═══════════════════════ LIST ═══════════════════════
+let searchVal = "";
+function renderList() {
+  const c = document.getElementById("content");
+  const td = today();
+  const filtered = animals.filter(a =>
+    !searchVal ||
+    a.name.includes(searchVal) ||
+    (a.ownerName||"").includes(searchVal) ||
+    a.species.includes(searchVal)
+  );
+
+  if (animals.length === 0) {
+    c.innerHTML = `
+      <div class="empty">
+        <div class="big">🐾</div>
+        <h3>لا يوجد سجلات بعد</h3>
+        <p>اضغط «+ إضافة» لتسجيل حيوان جديد</p>
+      </div>`;
+    return;
+  }
+
+  let cards = filtered.map(a => {
+    const vaccCount = (a.vaccines||[]).length;
+    let statusTag = "";
+    (a.vaccines||[]).forEach(v => {
+      const d = daysUntil(v.nextDate);
+      if (d !== null && d < 0)  statusTag = `<span class="tag-overdue">موعد متأخر!</span>`;
+      else if (d !== null && d <= 7 && !statusTag) statusTag = `<span class="tag-soon">قريباً</span>`;
+    });
+    return `
+    <div class="animal-card" onclick="showView('detail','${a.id}')">
+      <div class="ac-emoji">${SPECIES[a.species]||"🐾"}</div>
+      <div class="ac-body">
+        <div class="ac-name">${esc(a.name)}</div>
+        <div class="ac-sub">${esc(a.species)}${a.breed?" · "+esc(a.breed):""}</div>
+        <div class="ac-owner">${a.ownerName?"👤 "+esc(a.ownerName):""}</div>
+        <div class="ac-vacc">💉 ${vaccCount} تطعيم ${statusTag}</div>
+      </div>
+      <div class="ac-arrow">›</div>
+    </div>`;
+  }).join("");
+
+  c.innerHTML = `
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input type="search" placeholder="ابحث باسم الحيوان أو المالك..." value="${esc(searchVal)}"
+        oninput="searchVal=this.value;renderList()" />
+    </div>
+    ${filtered.length === 0 ? `<div class="empty"><div class="big">🔍</div><h3>لا نتائج</h3><p>جرب بحث آخر</p></div>` : `<div class="animals">${cards}</div>`}
+  `;
+}
+
+// ═══════════════════════ ADD ANIMAL ═══════════════════════
+function renderAddAnimal() {
+  const speciesOptions = Object.keys(SPECIES).map(s =>
+    `<option value="${s}">${SPECIES[s]} ${s}</option>`
+  ).join("");
+
+  document.getElementById("content").innerHTML = `
+  <div class="form-card">
+    <div class="form-title">🐾 تسجيل حيوان جديد</div>
+
+    <div class="sec-label">معلومات الحيوان</div>
+    <div class="row2">
+      <div class="field"><label>اسم الحيوان *</label><input id="f_name" type="text" placeholder="مثال: بيسو" /></div>
+      <div class="field"><label>النوع</label><select id="f_species">${speciesOptions}</select></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label>السلالة / الفصيلة</label><input id="f_breed" type="text" placeholder="مثال: لابرادور" /></div>
+      <div class="field"><label>الجنس</label>
+        <select id="f_gender"><option>ذكر</option><option>أنثى</option></select>
+      </div>
+    </div>
+    <div class="row2">
+      <div class="field"><label>العمر</label><input id="f_age" type="text" placeholder="مثال: سنتين" /></div>
+      <div class="field"><label>اللون</label><input id="f_color" type="text" placeholder="مثال: بني" /></div>
+    </div>
+
+    <div class="sec-label">معلومات المالك</div>
+    <div class="row2">
+      <div class="field"><label>اسم المالك</label><input id="f_owner" type="text" placeholder="الاسم الكامل" /></div>
+      <div class="field"><label>رقم الهاتف</label><input id="f_phone" type="tel" placeholder="05xxxxxxxx" /></div>
+    </div>
+    <div class="field"><label>ملاحظات طبية</label><textarea id="f_notes" placeholder="حساسيات، أمراض مزمنة، ملاحظات..."></textarea></div>
+
+```
+<button class="btn-save" onclick="saveAnimal()">💾 حفظ السجل</button>
+```
+
+  </div>`;
+}
+
+function saveAnimal() {
+const name = document.getElementById(“f_name”).value.trim();
+if (!name) { toast(“⚠️ يرجى إدخال اسم الحيوان”); return; }
+const a = {
+id: uid(), name,
+species:   document.getElementById(“f_species”).value,
+breed:     document.getElementById(“f_breed”).value.trim(),
+gender:    document.getElementById(“f_gender”).value,
+age:       document.getElementById(“f_age”).value.trim(),
+color:     document.getElementById(“f_color”).value.trim(),
+ownerName: document.getElementById(“f_owner”).value.trim(),
+ownerPhone:document.getElementById(“f_phone”).value.trim(),
+notes:     document.getElementById(“f_notes”).value.trim(),
+vaccines: [],
+createdAt: new Date().toISOString()
+};
+animals.unshift(a);
+save();
+toast(“✅ تم حفظ السجل”);
+showView(“list”);
+}
+
+// ═══════════════════════ DETAIL ═══════════════════════
+function renderDetail() {
+const a = animals.find(x => x.id === selectedId);
+if (!a) { showView(“list”); return; }
+const td = today();
+
+const infoRows = [
+[“الجنس”, a.gender||”—”], [“العمر”, a.age||”—”],
+[“اللون”, a.color||”—”], [“المالك”, a.ownerName||”—”],
+[“الهاتف”, a.ownerPhone ? `<a href="tel:${a.ownerPhone}" style="color:var(--green2);text-decoration:none">${a.ownerPhone}</a>` : “—”]
+].map(([l,v]) => ` <div class="info-item"> <span class="info-lbl">${l}</span> <span class="info-val">${v}</span> </div>`).join(””);
+
+const vaccCards = (a.vaccines||[]).map(v => {
+const d = daysUntil(v.nextDate);
+const cls = d !== null ? (d < 0 ? “overdue” : d <= 7 ? “soon” : “”) : “”;
+const nextClr = d !== null ? (d < 0 ? “warn” : d <= 7 ? “soon-clr” : “ok”) : “”;
+const nextTxt = d === null ? “” : d < 0 ? `🔔 موعد التطعيم القادم: <b>${v.nextDate}</b> ⚠️ متأخر ${Math.abs(d)} يوم`
+: d === 0 ? `🔔 موعد التطعيم القادم: <b>${v.nextDate}</b> (اليوم!)`
+: `🔔 موعد التطعيم القادم: <b>${v.nextDate}</b> (بعد ${d} يوم)`;
+return `<div class="vacc-card ${cls}"> <div class="vacc-top"> <div class="vacc-name">${esc(v.name)}</div> <button class="btn-del-vacc" onclick="deleteVaccine('${v.id}')">×</button> </div> <div class="vacc-rows"> <div class="vacc-row">📅 تاريخ التطعيم: <b>${v.date}</b></div> ${v.nextDate ?`<div class="vacc-row ${nextClr}">${nextTxt}</div>`: ""} ${v.batchNo  ?`<div class="vacc-row">🔢 رقم الدفعة: ${esc(v.batchNo)}</div>`: ""} ${v.vetName  ?`<div class="vacc-row">👨‍⚕️ الطبيب: ${esc(v.vetName)}</div>`: ""} ${v.notes    ?`<div class="vacc-row">📝 ${esc(v.notes)}</div>` : ""} </div> </div>`;
+}).join(””);
+
+document.getElementById(“content”).innerHTML = `
+
+  <div class="detail-card">
+    <div class="detail-top">
+      <div class="detail-emoji">${SPECIES[a.species]||"🐾"}</div>
+      <div>
+        <div class="detail-name">${esc(a.name)}</div>
+        <div class="detail-spec">${esc(a.species)}${a.breed?" · "+esc(a.breed):""}</div>
+      </div>
+    </div>
+    <div class="info-grid">${infoRows}</div>
+    ${a.notes ? `<div class="notes-box">📝 ${esc(a.notes)}</div>` : ""}
+    <button class="btn-danger" onclick="confirmDeleteAnimal()">🗑️ حذف هذا السجل</button>
+  </div>
+
+  <div class="vacc-sec-hd">
+    <h3>💉 سجل المطاعيم (${(a.vaccines||[]).length})</h3>
+    <button class="btn-add-vacc" onclick="showView('addVaccine')">+ إضافة تطعيم</button>
+  </div>
+
+${(a.vaccines||[]).length === 0
+? `<div class="vacc-empty">لا يوجد تطعيمات مسجلة بعد</div>`
+: vaccCards}
+`;
+}
+
+function confirmDeleteAnimal() {
+const a = animals.find(x => x.id === selectedId);
+showConfirm(`حذف سجل ${a?.name}؟`, “ستُحذف جميع بيانات الحيوان والمطاعيم نهائياً.”, () => {
+animals = animals.filter(x => x.id !== selectedId);
+save(); selectedId = null;
+toast(“🗑️ تم حذف السجل”);
+showView(“list”);
+});
+}
+
+function deleteVaccine(vid) {
+showConfirm(“حذف هذا التطعيم؟”, “لا يمكن التراجع عن هذه العملية.”, () => {
+const a = animals.find(x => x.id === selectedId);
+if (!a) return;
+a.vaccines = (a.vaccines||[]).filter(v => v.id !== vid);
+save(); toast(“🗑️ تم حذف التطعيم”);
+renderDetail();
+});
+}
+
+// ═══════════════════════ ADD VACCINE ═══════════════════════
+function renderAddVaccine() {
+const a = animals.find(x => x.id === selectedId);
+if (!a) { showView(“list”); return; }
+
+const vaccOpts = (VACCINES[a.species]||[]).map(v =>
+`<option value="${v}">${v}</option>`
+).join(””);
+
+document.getElementById(“content”).innerHTML = `
+
+  <div class="form-card">
+    <div class="form-title">💉 تطعيم جديد لـ ${esc(a.name)}</div>
+
+```
+<div class="field">
+  <label>اسم التطعيم *</label>
+  <select id="v_sel" onchange="toggleCustom()">
+    <option value="">— اختر التطعيم —</option>
+    ${vaccOpts}
+    <option value="__custom__">✏️ اسم آخر (يدوي)</option>
+  </select>
+</div>
+
+<div class="field" id="v_custom_wrap" style="display:none">
+  <label>اسم التطعيم (يدوي)</label>
+  <input id="v_custom" type="text" placeholder="أدخل اسم التطعيم" />
+</div>
+
+<div class="row2">
+  <div class="field"><label>تاريخ التطعيم *</label><input id="v_date" type="date" value="${today()}" /></div>
+  <div class="field"><label>موعد الجرعة القادمة</label><input id="v_next" type="date" /></div>
+</div>
+<div class="row2">
+  <div class="field"><label>رقم الدفعة (Batch No.)</label><input id="v_batch" type="text" placeholder="اختياري" /></div>
+  <div class="field"><label>اسم الطبيب المعالج</label><input id="v_vet" type="text" placeholder="اختياري" /></div>
+</div>
+<div class="field"><label>ملاحظات</label><textarea id="v_notes" placeholder="ردود فعل، جرعة، ملاحظات..."></textarea></div>
+
+<button class="btn-save" onclick="saveVaccine()">💾 حفظ التطعيم</button>
+```
+
+  </div>`;
+}
+
+function toggleCustom() {
+const sel = document.getElementById(“v_sel”).value;
+document.getElementById(“v_custom_wrap”).style.display = sel === “**custom**” ? “block” : “none”;
+}
+
+function saveVaccine() {
+const sel = document.getElementById(“v_sel”).value;
+const name = sel === “**custom**”
+? document.getElementById(“v_custom”).value.trim()
+: sel;
+const date = document.getElementById(“v_date”).value;
+if (!name) { toast(“⚠️ يرجى اختيار أو إدخال اسم التطعيم”); return; }
+if (!date) { toast(“⚠️ يرجى إدخال تاريخ التطعيم”); return; }
+
+const a = animals.find(x => x.id === selectedId);
+if (!a) return;
+a.vaccines = a.vaccines || [];
+a.vaccines.unshift({
+id: uid(), name, date,
+nextDate: document.getElementById(“v_next”).value,
+batchNo:  document.getElementById(“v_batch”).value.trim(),
+vetName:  document.getElementById(“v_vet”).value.trim(),
+notes:    document.getElementById(“v_notes”).value.trim()
+});
+save();
+toast(“✅ تم حفظ التطعيم”);
+showView(“detail”);
+}
+
+// ═══════════════════════ HELPERS ═══════════════════════
+function esc(s) {
+return String(s||””).replace(/&/g,”&”).replace(/</g,”<”).replace(/>/g,”>”).replace(/”/g,”"”);
+}
+
+function toast(msg) {
+const t = document.getElementById(“toast”);
+t.textContent = msg; t.classList.add(“show”);
+clearTimeout(t._t);
+t._t = setTimeout(() => t.classList.remove(“show”), 2500);
+}
+
+function showConfirm(title, sub, cb) {
+document.getElementById(“confirmTitle”).textContent = title;
+document.getElementById(“confirmSub”).textContent   = sub;
+confirmCallback = cb;
+document.getElementById(“confirmOverlay”).classList.add(“open”);
+}
+function closeConfirm() { document.getElementById(“confirmOverlay”).classList.remove(“open”); }
+document.getElementById(“confirmOk”).onclick = () => { closeConfirm(); if(confirmCallback) confirmCallback(); };
+document.getElementById(“confirmOverlay”).addEventListener(“click”, e => { if(e.target === e.currentTarget) closeConfirm(); });
+
+// ═══════════════════════ SERVICE WORKER ═══════════════════════
+if (“serviceWorker” in navigator) {
+const sw = `const CACHE="vet-v1"; self.addEventListener("install",e=>{self.skipWaiting()}); self.addEventListener("activate",e=>{self.clients.claim()}); self.addEventListener("fetch",e=>{e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request)))});`;
+const blob = new Blob([sw], {type:“text/javascript”});
+navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(()=>{});
+}
+
+// ═══════════════════════ INIT ═══════════════════════
+showView(“list”);
+</script>
+
+</body>
+</html>
